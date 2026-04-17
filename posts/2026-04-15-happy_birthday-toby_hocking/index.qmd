@@ -10,7 +10,7 @@ image: "copy_on_modify.png"
 ```{r Ropts, echo=FALSE}
 knitr::opts_chunk$set(
   dpi=100,
-  fig.width=9,
+  fig.width=12,
   fig.height=4)
 ```
 
@@ -203,6 +203,8 @@ pp <- function(num)sprintf("%d %s", num, ifelse(num==1, "person", "people"))
 space.cm <- 0.2
 gg <- ggplot(count.dt, aes(
   release, people, color=roles))+
+  theme(
+    axis.text.x=element_text(hjust=1, angle=40))+
   geom_line()+
   geom_point()+
   scale_x_date(breaks="year")+
