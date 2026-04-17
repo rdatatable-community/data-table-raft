@@ -1,0 +1,19 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+# Quarto files
+/.quarto/
+/_site/
+_freeze
+docs
+*_cache/
+*_files/
+
+# Emacs temporary files
+\#*
+*~
+
+# macOS-specific files
+.DS_Store

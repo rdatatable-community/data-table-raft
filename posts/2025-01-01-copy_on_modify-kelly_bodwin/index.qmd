@@ -1,0 +1,40 @@
+---
+title: "Copy on Modify"
+author: "Kelly Bodwin"
+date: "2025-12-01"
+categories: [tutorials, tips]
+image: "aoc2.png"
+draft: true
+---
+
+```{r}
+#| message: false
+library(data.table)
+library(palmerpenguins)
+```
+
+Test 1: ordinary dt
+
+```{r}
+dat <- data.table(penguins)
+dim(dat)
+```
+
+```{r}
+dat[species == "Adelie"]
+nrow(dat)
+```
+
+Filtering does **not** modify in place.
+
+```{r}
+dat[, Big := body_mass_g > 4000]
+names(dat)
+```
+
+Mutating **does** modify in place.
+
+```{r}
+dat[, ]
+```
+

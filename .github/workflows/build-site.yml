@@ -1,0 +1,34 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+name: build-site
+
+jobs:
+  build-book:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup r2u
+        uses: eddelbuettel/github-actions/r2u-setup@master
+      - name: install and update texlive
+        run: /usr/bin/sudo DEBIAN_FRONTEND=noninteractive apt update -y -qq
+      - run: /usr/bin/sudo DEBIAN_FRONTEND=noninteractive apt install tidy texlive texlive-fonts-extra texlive-extra-utils r-recommended -y
+      - uses: quarto-dev/quarto-actions/setup@v2
+      - name: Render
+        run: R --no-save < render.R
+      - name: netlify deploy
+        uses: animint/animint-actions/netlify-deploy-comment@main
+        with:
+          netlify_auth_token: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          netlify_site_id: ${{ secrets.NETLIFY_SITE_ID }}
+          pat_github_pr: ${{ secrets.PAT_GITHUB_PR }}
+          path: docs
+          netlify_url: The-Raft.netlify.app

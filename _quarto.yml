@@ -1,0 +1,46 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "Blog"
+  site-url: https://rdatatable-community.github.io/The-Raft
+  description: ""
+  navbar:
+    right:
+      - text: About
+        href: about.qmd
+      - icon: github
+        href: https://github.com/rdatatable
+      - icon: mastodon
+        href: https://fosstodon.org/@r_data_table
+      - icon: cloud
+        href: https://bsky.app/profile/rdatatable.bsky.social
+      - icon: twitter
+        href: https://twitter.com/r_data_table
+      - icon: rss
+        href: index.xml
+      - icon: envelope
+        href: "mailto:r.data.table@gmail.com"
+
+format:
+  html:
+    theme: [solar, custom.scss]
+    css: styles.css
+
+editor: visual
+
+listing:
+  contents: ../../posts/*/
+  categories: true
+  sort: "date desc"
+  type: default
+  feed: true
+  sort-ui: false
+  filter-ui: false
+  
+execute: 
+  freeze: auto
+
+resources:
+  - "images/*"
