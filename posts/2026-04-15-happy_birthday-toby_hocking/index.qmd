@@ -242,9 +242,12 @@ To emphasize the values at each release, we add direct labels below:
 
 ```{r}
 pp <- function(num)sprintf("%d %s", num, ifelse(num==1, "person", "people"))
+## To define upper limit of X scale, we use prop.
+## prop=0 means no extra space.
+## prop=0.1 means 10% more space, etc.
 prop <- 0.1
-space.cm <- 0.2
-cex <- 0.7
+space.cm <- 0.2 # offset of direct labels from data.
+cex <- 0.7 # text size of direct labels.
 directlabels::direct.label(
   gg, list(directlabels::dl.trans(x=x+space.cm), "right.polygons"))+
   scale_x_date(
