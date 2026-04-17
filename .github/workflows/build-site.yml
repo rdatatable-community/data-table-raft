@@ -10,7 +10,6 @@ name: build-site
 
 jobs:
   quarto-netlify:
-    name : render + netlify deploy
     runs-on: ubuntu-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
