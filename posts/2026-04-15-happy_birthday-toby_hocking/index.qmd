@@ -246,8 +246,14 @@ pp <- function(num)sprintf("%d %s", num, ifelse(num==1, "person", "people"))
 ## prop=0 means no extra space.
 ## prop=0.1 means 10% more space, etc.
 prop <- 0.1
-space.cm <- 0.2 # offset of direct labels from data.
-cex <- 0.7 # text size of direct labels.
+space.cm <- 0.2 # space between polygon point and data point.
+poly.method <- function(position, direction)substitute(list(
+  directlabels::dl.trans(
+    cex=0.7, # text size of direct labels.
+    y=y+YSPACE),
+  directlabels::polygon.method(
+    POSITION, offset.cm=0.5)), #space between polygon point and text.
+  list(YSPACE=direction*space.cm, POSITION=position))
 directlabels::direct.label(
   gg, list(directlabels::dl.trans(x=x+space.cm), "right.polygons"))+
   scale_x_date(
@@ -259,11 +265,11 @@ directlabels::direct.label(
   directlabels::geom_dl(aes(
     label=sprintf("%s\n%s", version, pp(people))),
     data=count.dt[Role=="ctb"],
-    method=list(directlabels::dl.trans(cex=cex, y=y+space.cm), "top.polygons"))+
+    method=poly.method("top", 1))+
   directlabels::geom_dl(aes(
     label=sprintf("%s\n%s", pp(people), version)),
     data=count.dt[Role=="aut"],
-    method=list(directlabels::dl.trans(cex=cex, y=y-space.cm), "bottom.polygons"))
+    method=poly.method("bottom", -1))
 ```
 
 The figure above shows that the number of authors and contributors has greatly expanded in the second decade of `data.table`.
