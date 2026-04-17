@@ -196,38 +196,63 @@ We will analyze the roles.
 author.dt[roles==""]
 ```
 
-We see some old etries above with missing roles, which we fill in below.
+We see some old entries above with missing roles, which we fill in below.
 
 ```{r}
-author.dt[grepl("Dowle|Srinivasan", name), roles := "aut"]
-author.dt[roles=="", roles := "ctb"]
-author.dt[roles=="aut, cre", roles := "aut"]
-(count.dt <- author.dt[, .(people=.N), by=.(release, version, roles)])
+linewidth.values <- c(
+  ctb=2,
+  aut=1)
+author.dt[
+, Role := factor(fcase(
+  roles=="aut, cre" | grepl("Dowle|Srinivasan", name), "aut",
+  roles=="", "ctb",
+  default=roles), names(linewidth.values))
+][
+, table(roles, Role, useNA="always")
+]
+```
+
+Above we use `fcase()` to create a new `Role` column, with factor levels in a non-default order (to control legend entry display order below).
+Then we chain square brackets to display a table which shows how `roles` values are mapped to `Role`.
+The counts look reasonable, so the next step is to count how many people with each role in each release:
+
+```{r}
+(count.dt <- author.dt[, .(people=.N), by=.(release, version, Role)])
 ```
 
 How has this evolved in the past ten years?
 
 ```{r}
 library(ggplot2)
-pp <- function(num)sprintf("%d %s", num, ifelse(num==1, "person", "people"))
-space.cm <- 0.2
 gg <- ggplot(count.dt, aes(
-  release, people, color=roles))+
+  release, people, color=Role))+
   theme(
     axis.text.x=element_text(hjust=1, angle=40))+
-  geom_line()+
-  geom_point()+
-  scale_x_date(breaks="year")+
-  scale_y_log10(limits=c(0.2,500))+
+  geom_line(aes(linewidth=Role))+
+  geom_point(shape=21, fill="white")+
+  scale_x_date(breaks="year", )+
+  scale_linewidth_manual(values=linewidth.values)+
+  scale_y_log10(limits=c(0.2, 500))
+gg
+```
+
+Above we see a time series showing the increasing authors and contributors over time.
+To emphasize the values at each release, we add direct labels below:
+
+```{r}
+pp <- function(num)sprintf("%d %s", num, ifelse(num==1, "person", "people"))
+space.cm <- 0.2
+cex <- 0.7
+directlabels::direct.label(
+  gg, list(directlabels::dl.trans(x=x+space.cm), "right.polygons"))+
   directlabels::geom_dl(aes(
     label=sprintf("%s\n%s", version, pp(people))),
-    data=count.dt[roles=="ctb"],
-    method=list(directlabels::dl.trans(y=y+space.cm), "top.polygons"))+
+    data=count.dt[Role=="ctb"],
+    method=list(directlabels::dl.trans(cex=cex, y=y+space.cm), "top.polygons"))+
   directlabels::geom_dl(aes(
     label=sprintf("%s\n%s", pp(people), version)),
-    data=count.dt[roles=="aut"],
-    method=list(directlabels::dl.trans(y=y-space.cm), "bottom.polygons"))
-directlabels::direct.label(gg, list(directlabels::dl.trans(x=x+space.cm), "right.polygons"))
+    data=count.dt[Role=="aut"],
+    method=list(directlabels::dl.trans(cex=cex, y=y-space.cm), "bottom.polygons"))
 ```
 
 The figure above shows that the number of authors and contributors has greatly expanded in the second decade of `data.table`.
@@ -369,18 +394,26 @@ each value specified in `i` (the first argument in the square bracket).
 We can plot these data as a heat map via
 
 ```{r heatMap}
+this.year <- as.integer(strftime(Sys.time(), "%Y"))
 ggplot()+
   theme_bw()+
-  theme(panel.spacing=grid::unit(0, "lines"))+
+  theme(
+    panel.spacing=grid::unit(0, "lines"),
+    axis.text.x=element_text(hjust=1, angle=40))+
   geom_tile(aes(
-    year, package, fill=log(N+1)),
+    year, package, fill=N),
     data=releases.per.year)+
   geom_text(aes(
     year, package, label=N),
     data=releases.per.year)+
   facet_grid(Project ~ ., labeller=label_both, scales="free", space="free")+
-  scale_fill_gradient("releases\n(log scale)", low="white", high="red")+
-  scale_x_continuous(breaks=seq(2006, 2022, by=2))+
+  scale_fill_gradient(
+    "releases",
+    low="white",
+    high="red",
+    breaks=c(0, 2^seq(0, 4)),
+    transform=scales::transform_log1p())+
+  scale_x_continuous(breaks=seq(2006, this.year))+
   coord_cartesian(expand=FALSE)
 ```
 
