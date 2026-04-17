@@ -157,16 +157,15 @@ We see above that the `Author` field can contain newlines, which we remove below
 desc.dt[, no.newlines := gsub("\n", " ", Author)][, cat_head(no.newlines)]
 ```
 
-We see above that the new column has no newlines.
-The output above has one line of comma-separated authors per ten year release.
-We would like to convert it to a table with one year per author.
+The output above has one line of comma-separated authors per release.
+We would like to convert these data to a table with one year per author.
 A simple approach would be
 
 ```{r}
 head(sapply(strsplit(desc.dt$no.newlines, ", "), head))
 ```
 
-It is clear that the result above does not quite work (Matt’s info is broken into the first two entries).
+It is clear that the result above does not quite work (Matt’s `aut, cre` role contains a comma so is broken into two entries).
 Instead we can use
 
 ```{r}
@@ -213,7 +212,7 @@ author.dt[
 ```
 
 Above we use `fcase()` to create a new `Role` column, with factor levels in a non-default order (to control legend entry display order below).
-Then we chain square brackets to display a table which shows how `roles` values are mapped to `Role`.
+Then we chain square brackets to display a table which shows how `roles` are mapped to `Role`.
 The counts look reasonable, so the next step is to count how many people with each role in each release:
 
 ```{r}
@@ -226,6 +225,7 @@ How has this evolved in the past ten years?
 library(ggplot2)
 gg <- ggplot(count.dt, aes(
   release, people, color=Role))+
+  ggtitle("data.table contributor and author counts for selected releases")+
   theme(
     panel.grid.minor=element_blank(),
     axis.text.x=element_text(hjust=1, angle=40))+
