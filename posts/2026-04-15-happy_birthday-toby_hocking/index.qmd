@@ -227,10 +227,11 @@ library(ggplot2)
 gg <- ggplot(count.dt, aes(
   release, people, color=Role))+
   theme(
+    panel.grid.minor=element_blank(),
     axis.text.x=element_text(hjust=1, angle=40))+
   geom_line(aes(linewidth=Role))+
   geom_point(shape=21, fill="white")+
-  scale_x_date(breaks="year", )+
+  scale_x_date(breaks="year")+
   scale_linewidth_manual(values=linewidth.values)+
   scale_y_log10(limits=c(0.2, 500))
 gg
@@ -241,10 +242,17 @@ To emphasize the values at each release, we add direct labels below:
 
 ```{r}
 pp <- function(num)sprintf("%d %s", num, ifelse(num==1, "person", "people"))
+prop <- 0.1
 space.cm <- 0.2
 cex <- 0.7
 directlabels::direct.label(
   gg, list(directlabels::dl.trans(x=x+space.cm), "right.polygons"))+
+  scale_x_date(
+    breaks=grid.dt$grid.IDate,
+    limits=grid.dt[, {
+      i <- as.integer(grid.IDate)
+      as.IDate(c(min(i), (1+prop)*max(i)-prop*min(i)))
+    }])+
   directlabels::geom_dl(aes(
     label=sprintf("%s\n%s", version, pp(people))),
     data=count.dt[Role=="ctb"],
