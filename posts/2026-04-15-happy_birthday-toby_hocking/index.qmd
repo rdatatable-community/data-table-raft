@@ -95,8 +95,8 @@ Above the table shows all matches, in the same order as the original Archive web
 Below we key the table by date, which sorts and enables fast joins.
 
 ```{r}
-Archive.dt[, IDate := as.IDate(date.str)]
 library(data.table)
+Archive.dt[, IDate := as.IDate(date.str)]
 setkey(Archive.dt, IDate)
 Archive.dt
 ```
