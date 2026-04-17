@@ -95,60 +95,69 @@ The end result is a table with one row for each matched package version, and one
 ```
 
 Above the table shows all matches, in the same order as the original Archive web page.
-Below we key the table by date, which sorts and enables fast joins.
+Below we key the table by date, which sorts the data in place (without allocating any new memory), and enables fast joins.
 
 ```{r}
 setkey(Archive.dt, IDate)
 Archive.dt
 ```
 
-Next, we define a grid of dates corresponding to every ten years.
+We see the table above has been sorted by release date.
+Next, we define a grid of dates which we will search for the nearest release.
 
 ```{r}
+every.year.since.2016 <- seq(
+  as.IDate("2016-04-14"),
+  Sys.time(),
+  by="year")
 (grid.dt <- setkey(data.table(
   grid.IDate=c(
-    as.IDate("2006-04-14"),
-    as.IDate("2011-04-14"),
-    seq(
-      as.IDate("2016-04-14"),
-      as.IDate("2026-04-14"),
-      length.out=11)))))
+    as.IDate("2006-04-14"), # first release.
+    as.IDate("2011-04-14"), # fifth anniversary.
+    every.year.since.2016))))
 ```
 
-Next, we do a rolling join to find which releases are nearest the 10 year grid.
+The code above sets the key of the grid, which sorts and enables fast joins.
+No variables were specified to `setkey()`; the default is to use all columns, in this case just one.
+Note that `setkey()` sets the key by reference, then returns the table.
+
+Next, we do a rolling join to find which releases are nearest to each date in the grid.
 
 ```{r}
-(nearest.dt <- Archive.dt[grid.dt, .(
-  file, version, package,
-  release=x.IDate,
-  grid=i.grid.IDate
-), roll="nearest"])
+(nearest.dt <- unique(Archive.dt[grid.dt, .(
+  file, version, package, release=x.IDate
+), roll="nearest"]))
 ```
 
-Next, we download the old package sources from the Archive, and extract the Author field of DESCRIPTION.
+The output above shows one row per release we will analyze.
+For each release, we download the package sources from the Archive, and extract the Author field of DESCRIPTION.
 
 ```{r}
 desc.dt <- nearest.dt[, {
   cache.dir <- "~/Archive"
   dir.create(cache.dir, showWarnings = FALSE)
   dt.tar.gz <- file.path(cache.dir, file)
-  if(!file.exists(dt.tar.gz))
-    download.file(paste0(Archive, package, "/", file), dt.tar.gz)
+  if(!file.exists(dt.tar.gz)){
+    url.tar.gz <- paste0(Archive, package, "/", file)
+    download.file(url.tar.gz, dt.tar.gz)
+  }
   conn <- gzfile(dt.tar.gz, "b")
   DESCRIPTION <- file.path(package, "DESCRIPTION")
   untar(conn, files=DESCRIPTION)
   close(conn)
-  .(Author=read.dcf(DESCRIPTION)[,"Author"])
+  as.data.table(read.dcf(DESCRIPTION)[,"Author",drop=FALSE])
 }, by=.(version, release)]
+cat_head <- function(x)cat(head(x),sep="\n-----------\n")
+cat_head(desc.dt$Author)
 ```
 
-The output above seems to have extra newlines, which we remove below:
+We see above that the `Author` field can contain newlines, which we remove below, to make later parsing easier:
 
 ```{r}
-desc.dt[, no.newlines := gsub("\n", " ", Author)]
-cat(paste(desc.dt$no.newlines,collapse="\n"))
+desc.dt[, no.newlines := gsub("\n", " ", Author)][, cat_head(no.newlines)]
 ```
 
+We see above that the new column has no newlines.
 The output above has one line of comma-separated authors per ten year release.
 We would like to convert it to a table with one year per author.
 A simple approach would be
@@ -173,14 +182,14 @@ author.pattern <- list(
     paren=".+?",
     "\\)",
     "?"),
-  ## each author ends with a comma, or the end of the string (\z).
+  ## each author ends with one of these (\z means end of string).
   nc::alternatives(" with (?:many )?contributions from ", ", ", "\\z"))
 (author.dt <- desc.dt[, nc::capture_all_str(
   no.newlines, author.pattern
 ), by=.(version, release)])
 ```
 
-The table above has one row for each person who appears in the Author field.
+The table above has one row for each time a person appears in the Author field of one of the releases.
 We will analyze the roles.
 
 ```{r}
