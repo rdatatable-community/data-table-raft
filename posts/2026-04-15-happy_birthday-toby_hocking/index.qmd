@@ -12,6 +12,8 @@ knitr::opts_chunk$set(
   dpi=100,
   fig.width=12,
   fig.height=4)
+options(
+  datatable.print.nrows=20)
 ```
 
 Happy birthday, `data.table`!
@@ -68,11 +70,12 @@ nc::capture_all_str(Archive.data.table, file.pattern)
 Next, we add to the pattern to match the release date,
 
 ```{r}
+library(data.table)
 Archive.pattern <- list(
   file=file.pattern,
   "</a>",
   "\\s+",
-  date.str=".*?",
+  IDate=".*?", as.IDate,
   "\\s")
 ```
 
@@ -81,8 +84,8 @@ The code above has
 * `file=file.pattern` which means to apply the previous regex, and put the matching text in the `file` column,
 * `"</a>"` which matches the closing `</a>` tag
 * `"\\s+"` which matches one or more white space characters,
-* `date.str=".*?"` which matches zero or more characters (non-greedy,
-  as few as possible), and output them in the `date.str` column,
+* `IDate=".*?", as.IDate,` which matches zero or more characters (non-greedy,
+  as few as possible), then use `as.IDate` to convert the text to efficient integer date, saved in the `IDate` column,
 * `"\\s"` means to match one white space character.
 
 The end result is a table with one row for each matched package version, and one column for each of the named arguments:
@@ -95,8 +98,6 @@ Above the table shows all matches, in the same order as the original Archive web
 Below we key the table by date, which sorts and enables fast joins.
 
 ```{r}
-library(data.table)
-Archive.dt[, IDate := as.IDate(date.str)]
 setkey(Archive.dt, IDate)
 Archive.dt
 ```
@@ -258,8 +259,7 @@ For plotting we add a few more columns,
 
 ```{r}
 release.dt[, `:=`(
-  IDate = as.IDate(date.str),
-  year = as.integer(sub("-.*", "", date.str)),
+  year = as.integer(sub("-.*", "", IDate)),
   package = factor(Package, compare.pkg.dt$Package),
   Project = paste0('\n', project))]
 setkey(release.dt, Project, Package, IDate)
