@@ -1,4 +1,4 @@
-pkgs <- c("mlr3verse","fastverse","ranger","tidyfast","dtplyr")
+pkgs <- c("mlr3verse","fastverse","ranger","tidyfast","dtplyr","data.table", "magrittr", "palmerpenguins", "tidyverse", "knitr", "dplyr", "reshape2", "atime", "ggplot2", "reticulate")
 ins.mat <- installed.packages()
 missing.pkgs <- setdiff(pkgs, rownames(ins.mat))
 install.packages(missing.pkgs)
