@@ -12,8 +12,6 @@ knitr::opts_chunk$set(
   dpi=100,
   fig.width=12,
   fig.height=4)
-options(
-  datatable.print.nrows=20)
 ```
 
 Happy birthday, `data.table`!
@@ -64,6 +62,7 @@ The code above specifies a regular expression:
 Below we use that pattern to convert the web page into a data table with two columns,
 
 ```{r}
+options(datatable.print.nrows=20) # instead of default 100.
 nc::capture_all_str(Archive.data.table, file.pattern)
 ```
 
@@ -147,17 +146,24 @@ desc.dt <- nearest.dt[, {
   close(conn)
   as.data.table(read.dcf(DESCRIPTION)[,"Author",drop=FALSE])
 }, by=.(version, release)]
-cat_head <- function(x)cat(head(x),sep="\n-----------\n")
-cat_head(desc.dt$Author)
 ```
 
-We see above that the `Author` field can contain newlines, which we remove below, to make later parsing easier:
+To avoid printing the full Author column (a long string), we can set an option:
 
 ```{r}
-desc.dt[, no.newlines := gsub("\n", " ", Author)][, cat_head(no.newlines)]
+options(
+  datatable.prettyprint.char=30, # print ... after this many characters.
+  width=100) # max characters before wrapping columns to next line.
+desc.dt
 ```
 
-The output above has one line of comma-separated authors per release.
+We see above that the `Author` field can contain newlines (after the comma), which we remove below, to make later parsing easier:
+
+```{r}
+desc.dt[, no.newlines := gsub("\n", " ", Author)][]
+```
+
+The output above has a new column of comma-separated authors per release (with no newlines).
 We would like to convert these data to a table with one year per author.
 A simple approach would be
 
