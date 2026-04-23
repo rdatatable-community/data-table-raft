@@ -172,7 +172,7 @@ head(sapply(strsplit(desc.dt$no.newlines, ", "), head))
 ```
 
 It is clear that the result above does not quite work (Matt’s `aut, cre` role contains a comma so is broken into two entries).
-Instead we can use
+Instead we can use the regular expression below.
 
 ```{r}
 author.pattern <- list(
