@@ -229,56 +229,53 @@ How has this evolved in the past ten years?
 
 ```{r}
 library(ggplot2)
-gg <- ggplot(count.dt, aes(
+(gg <- ggplot(count.dt, aes(
   release, people, color=Role))+
-  ggtitle("data.table contributor and author counts for selected releases")+
-  theme(
-    panel.grid.minor=element_blank(),
-    axis.text.x=element_text(hjust=1, angle=40))+
-  geom_line(aes(linewidth=Role))+
-  geom_point(shape=21, fill="white")+
-  scale_x_date(breaks="year")+
-  scale_linewidth_manual(values=linewidth.values)+
-  scale_y_log10(limits=c(0.2, 500))
-gg
+   ggtitle("data.table contributor and author counts for selected releases")+
+   theme(
+     panel.grid.minor=element_blank(),
+     axis.text.x=element_text(hjust=1, angle=40))+
+   geom_line(aes(linewidth=Role))+
+   geom_point(shape=21, fill="white")+
+   scale_x_date(breaks="year")+
+   scale_linewidth_manual(values=linewidth.values)+
+   scale_y_log10(limits=c(0.2, 500)))
 ```
 
 Above we see a time series showing the increasing authors and contributors over time.
 To emphasize the values at each release, we add direct labels below:
 
 ```{r}
-pp <- function(num)sprintf("%d %s", num, ifelse(num==1, "person", "people"))
+geom_dl_poly <- function(role, position, direction)directlabels::geom_dl(aes(
+  label=sprintf("%s\n%s %s", version, people, Role)),
+  data=count.dt[Role==role],
+  method=list(
+    paste0(position, ".points"),
+    cex=0.7, # text size of direct labels.
+    directlabels::dl.add(y=direction*0.2),# cm between polygon point and data point.
+    directlabels::polygon.method(
+      position, offset.cm=0.5))) #space between polygon point and text.
+(dl <- gg+
+  geom_dl_poly("ctb", "top", 1)+
+  geom_dl_poly("aut", "bottom", -1))
+```
+
+The figure above shows that the number of authors and contributors has greatly expanded in the second decade of `data.table`.
+Below we expand the X axis, so that the direct labels are more centered around the corresponding data.
+
+```{r}
 ## To define upper limit of X scale, we use prop.
 ## prop=0 means no extra space.
 ## prop=0.1 means 10% more space, etc.
 prop <- 0.1
-space.cm <- 0.2 # space between polygon point and data point.
-poly.method <- function(position, direction)substitute(list(
-  directlabels::dl.trans(
-    cex=0.7, # text size of direct labels.
-    y=y+YSPACE),
-  directlabels::polygon.method(
-    POSITION, offset.cm=0.5)), #space between polygon point and text.
-  list(YSPACE=direction*space.cm, POSITION=position))
-directlabels::direct.label(
-  gg, list(directlabels::dl.trans(x=x+space.cm), "right.polygons"))+
-  scale_x_date(
-    breaks=grid.dt$grid.IDate,
-    limits=grid.dt[, {
-      i <- as.integer(grid.IDate)
-      as.IDate(c(min(i), (1+prop)*max(i)-prop*min(i)))
-    }])+
-  directlabels::geom_dl(aes(
-    label=sprintf("%s\n%s", version, pp(people))),
-    data=count.dt[Role=="ctb"],
-    method=poly.method("top", 1))+
-  directlabels::geom_dl(aes(
-    label=sprintf("%s\n%s", pp(people), version)),
-    data=count.dt[Role=="aut"],
-    method=poly.method("bottom", -1))
+dl+scale_x_date(
+  breaks=grid.dt$grid.IDate,
+  limits=grid.dt[, {
+    i <- as.integer(grid.IDate)
+    as.IDate(c(min(i), (1+prop)*max(i)-prop*min(i)))
+  }])
 ```
 
-The figure above shows that the number of authors and contributors has greatly expanded in the second decade of `data.table`.
 I’m looking forward to the third decade!
 
 # Update of the previous blog
