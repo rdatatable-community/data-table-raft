@@ -4,7 +4,7 @@ author: "Toby Hocking"
 date: "2026-04-15"
 categories: [tips, tutorials, developer]
 draft: false
-image: "copy_on_modify.png"
+image: "github-commits.png"
 ---
 
 ```{r Ropts, echo=FALSE}
@@ -16,10 +16,43 @@ knitr::opts_chunk$set(
 
 Happy birthday, `data.table`!
 
-# New analysis of authors and contributors
+# Introduction: GitHub commits and governance
 
 Since this is the 20th anniversary of Matt’s original CRAN submission, I wanted to do some analysis of contributors over time, to emphasize the great community that has been working to improve `data.table` in recent years.
-To do that, we first download data on all releases, using code from [my previous post](https://tdhock.github.io/blog/2022/release-history/) about the release history of `data.table`.
+
+To do that, a simple way is to look at the [commit history](https://github.com/Rdatatable/data.table/issues/7698#issuecomment-4319601361) on GitHub:
+
+![github data table commits](github-commits.png)
+
+Above we can see that there is a record number of commits since late 2023, which is when the formal project [governance](https://github.com/Rdatatable/data.table/blob/master/GOVERNANCE.md) was adopted.
+That was a turning point in the package’s history.
+Prior to that, Matt Dowle was reviewing and merge all PRs.
+Matt did a fantastic job ensuring quality and performance, but it was difficult to handle the sheer volume of issues and PRs, since `data.table` is so widely used in the R community (1700+ other CRAN packages list `data.table` as a hard dependency as of April 2026).
+Now, there is a group of several committers, including myself, that can review and merge PRs.
+So it is much easier to handle the increased number of contributions from the much larger group of people that are now using `data.table`.
+If you are using `data.table`, please consider contributing!
+We are an open and diverse group, and [there are lots of ways to contribute](https://github.com/Rdatatable/data.table?tab=contributing-ov-file):
+
+* writing a tutorial about `data.table` on your blog.
+* look at the [list of open issues on GitHub](https://github.com/Rdatatable/data.table/issues), try to reproduce the issue on your machine, and add a comment to the issue that explains if the issue is still happening on your machine (or not).
+* sending us a new issue,
+  * if you think there may be a problem that could be fixed.
+  * if you have an important use case for which we could possibly add new tests (for validity of output, or for [performance using atime](https://github.com/Rdatatable/data.table/wiki/Performance-testing)).
+  * anything else! We primary use issues to communicate, so please do not hesitate to open a new issue.
+* write a PR with a
+  * vignette translation, currently available in [en](https://r-datatable.com/articles/datatable-intro.html), [es](https://rdatatable.gitlab.io/data.table/articles/es/datatable-intro.html), [fr](https://rdatatable.gitlab.io/data.table/articles/fr/datatable-intro.html), [ru](https://rdatatable.gitlab.io/data.table/articles/ru/datatable-intro.html).
+  * fix for an existing issue.
+  * When the PR is merged, you will be invited to become a [Project Member](https://github.com/Rdatatable/data.table/blob/master/GOVERNANCE.md#project-member), meaning you will have permission to create new branches in the central `data.table` repo.
+* Volunteer to become [a Reviewer](https://github.com/Rdatatable/data.table/blob/master/GOVERNANCE.md#reviewer) for the R or C code files in `data.table` that are important to you! You will be notified when there is a PR with modifications, and you can comment to ask for improvements to the PR.
+* Eventually after contributing and reviewing several PRs, you can be invited to become a Committer, with permission to merge PRs into the master branch.
+
+Now is a great time to get involved.
+Your contributions to `data.table` will be greatly appreciated by the community around `data.table`, including the wider community of other packages that depend on `data.table` for its state-of-the-art efficiency.
+
+# New analysis of CRAN authors and contributors
+
+In the rest of this article, my goal is to analyze the number of authors and contributors in CRAN releases of `data.table`.
+We first download data on all releases, using code from [my previous post](https://tdhock.github.io/blog/2022/release-history/) about the release history of `data.table`.
 
 ## Download Archive web page
 
@@ -263,196 +296,11 @@ geom_dl_poly <- function(role, position, direction)directlabels::geom_dl(aes(
 The figure above shows that the number of authors and contributors has greatly expanded in the second decade of `data.table`.
 I’m looking forward to the third decade!
 
-# Update of the previous blog
-
-The rest of this post is copied from [my previous post](https://tdhock.github.io/blog/2022/release-history/), with an update based on recent data.
-
-## Analyze several packages for comparison
-
-The code below defines a set of four packages for which we would like
-to analyze the release history (tidyverse packages for comparison).
-
-```{r}
-compare.pkg.dt <- rbind(
-  data.table(project="tidyverse", Package=c("readr","tidyr","dplyr")),
-  data.table(project="deprecated", Package=c("reshape2", "plyr")),
-  data.table(project="data.table", Package="data.table"))
-```
-
-In the code below, we do the same thing for each package, 
-
-```{r}
-(release.dt <- compare.pkg.dt[, {
-  Archive.pkg <- get_Archive(Package)
-  nc::capture_all_str(Archive.pkg, Archive.pattern)
-}, by=names(compare.pkg.dt)])
-```
-
-The result above is a data table with one row for each package
-version. Note that the code set `by` to all column names, so that the
-code is run for each row/package.
-
-## Add columns for plotting
-
-For plotting we add a few more columns,
-
-```{r}
-release.dt[, `:=`(
-  year = as.integer(sub("-.*", "", IDate)),
-  package = factor(Package, compare.pkg.dt$Package),
-  Project = paste0('\n', project))]
-setkey(release.dt, Project, Package, IDate)
-release.dt
-```
-
-To explain the new columns above,
-
-* `IDate` is for the date to display on the X axis,
-* `year` is for labeling the first released version each year,
-* `package` is for displaying the Y axis in a particular order
-  (defined by the factor levels),
-* `Project` is for the facet/panel titles (newline so that minimal
-  vertical space is used).
-  
-## Basic plot
-
-The code below creates a basic version history plot,
-
-```{r points}
-(gg.points <- ggplot()+
-  theme(
-    axis.text.x=element_text(hjust=1, angle=40))+
-  facet_grid(Project ~ ., labeller=label_both, scales="free")+
-  geom_point(aes(
-    IDate, package),
-    shape=1,
-    data=release.dt)+
-  scale_x_date("Date", breaks="year"))
-```
-
-The plot above shows a point for every release to CRAN, so you can see
-the distribution of releases over time.
-
-## Add direct labels
-
-Before plotting we make a new table which contains only the first
-release of `data.table` in each year (for direct labels),
-
-```{r}
-(labeled.releases <- release.dt[Package=="data.table", .SD[1], by=year])
-```
-
-```{r points-labels}
-gg.points+
-  directlabels::geom_dl(aes(
-    IDate, package, label=paste0(year, "\n", version)),
-    method=list(
-      cex=0.7,
-      directlabels::polygon.method(
-        "top", offset.cm=0.2, custom.colors=list(
-          colour="white",
-          box.color="black",
-          text.color="black"))),
-    data=labeled.releases)
-```
-  
-The plot above shows a label for the first version released each year.
-
-## Releases per year
-
-One way to compute releases per year would be to add up the total
-number of releases, then divide by the number of years,
-
-```{r release-history}
-(overall.stats <- dcast(
-  release.dt, 
-  project + Package ~ ., 
-  list(min,max,length), 
-  value.var="year"
-)[, releases.per.year := year_length/(year_max-year_min+1)][])
-```
-
-Another way to do it would be to compute the number of releases in
-each year since the release of the package. To do that we first
-compute, for each package, a set of years for which we want to count
-releases.
-
-```{r}
-(max.year <- max(release.dt$year))
-(years.since.release <- release.dt[, .(
-  year=seq(min(year), max.year)
-), by=.(Project, project, Package, package)])
-```
-
-Then we can do a join and summarize to count the number of releases in
-each year, for each package,
-
-```{r}
-(releases.per.year <- release.dt[years.since.release, .(
-  N=as.numeric(.N)
-), on=.NATURAL, by=.EACHI])
-```
-
-Note that `on=.NATURAL` above means to join on the common columns
-between the two tables, and `by=.EACHI` means to compute a summary for
-each value specified in `i` (the first argument in the square bracket).
-We can plot these data as a heat map via
-
-```{r heatMap}
-this.year <- as.integer(strftime(Sys.time(), "%Y"))
-ggplot()+
-  theme_bw()+
-  theme(
-    panel.spacing=grid::unit(0, "lines"),
-    axis.text.x=element_text(hjust=1, angle=40))+
-  geom_tile(aes(
-    year, package, fill=N),
-    data=releases.per.year)+
-  geom_text(aes(
-    year, package, label=N),
-    data=releases.per.year)+
-  facet_grid(Project ~ ., labeller=label_both, scales="free", space="free")+
-  scale_fill_gradient(
-    "releases",
-    low="white",
-    high="red",
-    breaks=c(0, 2^seq(0, 4)),
-    transform=scales::transform_log1p())+
-  scale_x_continuous(breaks=seq(2006, this.year))+
-  coord_cartesian(expand=FALSE)
-```
-
-The heat map above shows a summarized display of the release data we
-saw earlier in the dot plot.
-
-Next, we can apply a list of summary functions over all of the yearly
-counts, for each package, via
-
-```{r}
-(per.year.stats <- dcast(
-  releases.per.year,
-  project + Package ~ .,
-  list(min, max, mean, sd, length),
-  value.var = "N"))
-```
-
-Finally, the code below creates a table to compare the two different ways of
-computing the number of releases per year,
-
-```{r}
-per.year.stats[overall.stats, .(
-  Package, 
-  overall.mean=N_mean, 
-  mean.per.year=releases.per.year
-), on="Package"]
-```
-
-The table above show similar numbers for the two methods of computing
-the number of releases per year.
-
 ## Conclusion
 
 We have shown how to download CRAN package release data, how to parse
 the web pages using the `nc` package and regular expressions, how to
 summarize/analyze using `data.table`, and how to visualize using
 `ggplot2`.
+If you are using `data.table`, please consider contributing!
+We are an open and inclusive group that appreciates new contributions!
