@@ -23,7 +23,8 @@ To do that, we first download data on all releases, using code from [my previous
 
 ## Download Archive web page
 
-We can download the Archive web page for `data.table` via the code below,
+We can download the Archive web page for `data.table` via the code below.
+Note that In R ≥ 4.5, `tools::CRAN_archive_db()` can be used, but here we use `download.file()` to give an example of how HTML can be parsed into a data table using `library(nc)`.
 
 ```{r}
 Archive <- "https://cloud.r-project.org/src/contrib/Archive/"
