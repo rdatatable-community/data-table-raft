@@ -294,6 +294,9 @@ geom_dl_poly <- function(role, position, direction)directlabels::geom_dl(aes(
 ```
 
 The figure above shows that the number of authors and contributors has greatly expanded in the second decade of `data.table`.
+I would especially like to thank the other new Committers since adoption of the formal governance.
+Jan Gorecki, Mike Chirico, Ben Schwendinger, Tyson Barrett, and Ivan Krylov have been doing most of the work, writing, reviewing and merging PRs, that is keeping `data.table` a relevant and state-of-the-art package for data science.
+Another special thank you goes out to Kelly Bodwin, who lead the effort to get `data.table` accepted as a NumFOCUS affiliated project (since 2025).
 I’m looking forward to the third decade!
 
 ## Conclusion
