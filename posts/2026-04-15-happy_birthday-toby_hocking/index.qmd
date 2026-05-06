@@ -26,7 +26,7 @@ To do that, a simple way is to look at the [commit history](https://github.com/R
 
 Above we can see that there is a record number of commits since late 2023, which is when the formal project [governance](https://github.com/Rdatatable/data.table/blob/master/GOVERNANCE.md) was adopted.
 That was a turning point in the package’s history.
-Prior to that, Matt Dowle was reviewing and merge all PRs.
+Prior to that, Matt Dowle was reviewing and merging all PRs.
 Matt did a fantastic job ensuring quality and performance, but it was difficult to handle the sheer volume of issues and PRs, since `data.table` is so widely used in the R community (1700+ other CRAN packages list `data.table` as a hard dependency as of April 2026).
 Now, there is a group of several committers, including myself, that can review and merge PRs.
 So it is much easier to handle the increased number of contributions from the much larger group of people that are now using `data.table`.
