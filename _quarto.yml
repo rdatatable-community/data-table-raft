@@ -4,14 +4,14 @@ project:
 
 website:
   title: "Blog"
-  site-url: https://rdatatable-community.github.io/The-Raft
+  site-url: https://data-table-raft.netlify.app
   description: ""
   navbar:
     right:
       - text: About
         href: about.qmd
       - icon: github
-        href: https://github.com/rdatatable
+        href: https://github.com/rdatatable-community/data-table-raft
       - icon: mastodon
         href: https://fosstodon.org/@r_data_table
       - icon: cloud
