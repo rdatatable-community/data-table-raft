@@ -88,10 +88,10 @@ The code above specifies a regular expression:
 
 * `'(?<=>)'` is a lookbehind assertion. It means to start by looking for a greater than sign, but not including that character in the match.
 * `package=".*?"` means to match zero or more of anything except newline (non-greedy, as few as possible), and output the match in the `package` column,
-* `"_"` means to start by matching an underscore,
+* `"_"` means to match an underscore,
 * `version="[0-9.-]+"` means to match one or more digits/dots/dashes, and
   output them in the `version` column,
-* `"[.]tar[.]gz</a>\\s+"` means to match the `.tar.gz` file name suffix.
+* `"[.]tar[.]gz"` means to match the `.tar.gz` file name suffix.
 
 Below we use that pattern to convert the web page into a data table with two columns,
 
@@ -118,7 +118,7 @@ The code above has
 * `"</a>"` which matches the closing `</a>` tag
 * `"\\s+"` which matches one or more white space characters,
 * `IDate=".*?", as.IDate,` which matches zero or more characters (non-greedy,
-  as few as possible), then use `as.IDate` to convert the text to efficient integer date, saved in the `IDate` column,
+  as few as possible), then uses `as.IDate` to convert the text to efficient integer date, saved in the `IDate` column,
 * `"\\s"` means to match one white space character.
 
 The end result is a table with one row for each matched package version, and one column for each of the named arguments:
